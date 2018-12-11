@@ -32,7 +32,7 @@ static ngx_conf_post_t  ngx_regex_pcre_jit_post = { ngx_regex_pcre_jit };
 static ngx_command_t  ngx_regex_commands[] = {
 
     { ngx_string("pcre_jit"),
-      NGX_MAIN_CONF|NGX_DIRECT_CONF|NGX_CONF_TAKE1,
+      NGX_MAIN_CONF|NGX_DIRECT_CONF|NGX_CONF_FLAG,
       ngx_conf_set_flag_slot,
       0,
       offsetof(ngx_regex_conf_t, pcre_jit),
@@ -262,7 +262,7 @@ ngx_pcre_free_studies(void *data)
     part = &studies->part;
     elts = part->elts;
 
-    for (i = 0 ; /* void */ ; i++) {
+    for (i = 0; /* void */ ; i++) {
 
         if (i >= part->nelts) {
             if (part->next == NULL) {
@@ -326,7 +326,7 @@ ngx_regex_module_init(ngx_cycle_t *cycle)
     part = &ngx_pcre_studies->part;
     elts = part->elts;
 
-    for (i = 0 ; /* void */ ; i++) {
+    for (i = 0; /* void */ ; i++) {
 
         if (i >= part->nelts) {
             if (part->next == NULL) {

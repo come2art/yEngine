@@ -25,6 +25,13 @@ static u_char ngx_http_error_full_tail[] =
 ;
 
 
+static u_char ngx_http_error_build_tail[] =
+"<hr><center>" NGINX_VER_BUILD "</center>" CRLF
+"</body>" CRLF
+"</html>" CRLF
+;
+
+
 static u_char ngx_http_error_tail[] =
 "<hr><center>nginx</center>" CRLF
 "</body>" CRLF
@@ -79,6 +86,14 @@ static char ngx_http_error_307_page[] =
 "<head><title>307 Temporary Redirect</title></head>" CRLF
 "<body bgcolor=\"white\">" CRLF
 "<center><h1>307 Temporary Redirect</h1></center>" CRLF
+;
+
+
+static char ngx_http_error_308_page[] =
+"<html>" CRLF
+"<head><title>308 Permanent Redirect</title></head>" CRLF
+"<body bgcolor=\"white\">" CRLF
+"<center><h1>308 Permanent Redirect</h1></center>" CRLF
 ;
 
 
@@ -210,6 +225,22 @@ static char ngx_http_error_416_page[] =
 ;
 
 
+static char ngx_http_error_421_page[] =
+"<html>" CRLF
+"<head><title>421 Misdirected Request</title></head>" CRLF
+"<body bgcolor=\"white\">" CRLF
+"<center><h1>421 Misdirected Request</h1></center>" CRLF
+;
+
+
+static char ngx_http_error_429_page[] =
+"<html>" CRLF
+"<head><title>429 Too Many Requests</title></head>" CRLF
+"<body bgcolor=\"white\">" CRLF
+"<center><h1>429 Too Many Requests</h1></center>" CRLF
+;
+
+
 static char ngx_http_error_494_page[] =
 "<html>" CRLF
 "<head><title>400 Request Header Or Cookie Too Large</title></head>"
@@ -290,6 +321,14 @@ static char ngx_http_error_504_page[] =
 ;
 
 
+static char ngx_http_error_505_page[] =
+"<html>" CRLF
+"<head><title>505 HTTP Version Not Supported</title></head>" CRLF
+"<body bgcolor=\"white\">" CRLF
+"<center><h1>505 HTTP Version Not Supported</h1></center>" CRLF
+;
+
+
 static char ngx_http_error_507_page[] =
 "<html>" CRLF
 "<head><title>507 Insufficient Storage</title></head>" CRLF
@@ -313,8 +352,9 @@ static ngx_str_t ngx_http_error_pages[] = {
     ngx_null_string,                     /* 305 */
     ngx_null_string,                     /* 306 */
     ngx_string(ngx_http_error_307_page),
+    ngx_string(ngx_http_error_308_page),
 
-#define NGX_HTTP_LAST_3XX  308
+#define NGX_HTTP_LAST_3XX  309
 #define NGX_HTTP_OFF_4XX   (NGX_HTTP_LAST_3XX - 301 + NGX_HTTP_OFF_3XX)
 
     ngx_string(ngx_http_error_400_page),
@@ -334,8 +374,21 @@ static ngx_str_t ngx_http_error_pages[] = {
     ngx_string(ngx_http_error_414_page),
     ngx_string(ngx_http_error_415_page),
     ngx_string(ngx_http_error_416_page),
+    ngx_null_string,                     /* 417 */
+    ngx_null_string,                     /* 418 */
+    ngx_null_string,                     /* 419 */
+    ngx_null_string,                     /* 420 */
+    ngx_string(ngx_http_error_421_page),
+    ngx_null_string,                     /* 422 */
+    ngx_null_string,                     /* 423 */
+    ngx_null_string,                     /* 424 */
+    ngx_null_string,                     /* 425 */
+    ngx_null_string,                     /* 426 */
+    ngx_null_string,                     /* 427 */
+    ngx_null_string,                     /* 428 */
+    ngx_string(ngx_http_error_429_page),
 
-#define NGX_HTTP_LAST_4XX  417
+#define NGX_HTTP_LAST_4XX  430
 #define NGX_HTTP_OFF_5XX   (NGX_HTTP_LAST_4XX - 400 + NGX_HTTP_OFF_4XX)
 
     ngx_string(ngx_http_error_494_page), /* 494, request header too large */
@@ -350,16 +403,13 @@ static ngx_str_t ngx_http_error_pages[] = {
     ngx_string(ngx_http_error_502_page),
     ngx_string(ngx_http_error_503_page),
     ngx_string(ngx_http_error_504_page),
-    ngx_null_string,                     /* 505 */
+    ngx_string(ngx_http_error_505_page),
     ngx_null_string,                     /* 506 */
     ngx_string(ngx_http_error_507_page)
 
 #define NGX_HTTP_LAST_5XX  508
 
 };
-
-
-static ngx_str_t  ngx_http_get_name = { 3, (u_char *) "GET " };
 
 
 ngx_int_t
@@ -463,7 +513,6 @@ ngx_http_special_response_handler(ngx_http_request_t *r, ngx_int_t error)
             case NGX_HTTPS_NO_CERT:
             case NGX_HTTP_REQUEST_HEADER_TOO_LARGE:
                 r->err_status = NGX_HTTP_BAD_REQUEST;
-                break;
         }
 
     } else {
@@ -564,7 +613,7 @@ ngx_http_send_error_page(ngx_http_request_t *r, ngx_http_err_page_t *err_page)
 
         if (r->method != NGX_HTTP_HEAD) {
             r->method = NGX_HTTP_GET;
-            r->method_name = ngx_http_get_name;
+            r->method_name = ngx_http_core_get_method;
         }
 
         return ngx_http_internal_redirect(r, &uri, &args);
@@ -583,7 +632,8 @@ ngx_http_send_error_page(ngx_http_request_t *r, ngx_http_err_page_t *err_page)
     if (overwrite != NGX_HTTP_MOVED_PERMANENTLY
         && overwrite != NGX_HTTP_MOVED_TEMPORARILY
         && overwrite != NGX_HTTP_SEE_OTHER
-        && overwrite != NGX_HTTP_TEMPORARY_REDIRECT)
+        && overwrite != NGX_HTTP_TEMPORARY_REDIRECT
+        && overwrite != NGX_HTTP_PERMANENT_REDIRECT)
     {
         r->err_status = NGX_HTTP_MOVED_TEMPORARILY;
     }
@@ -619,9 +669,13 @@ ngx_http_send_special_response(ngx_http_request_t *r,
     ngx_uint_t    msie_padding;
     ngx_chain_t   out[3];
 
-    if (clcf->server_tokens) {
+    if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
         len = sizeof(ngx_http_error_full_tail) - 1;
         tail = ngx_http_error_full_tail;
+
+    } else if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_BUILD) {
+        len = sizeof(ngx_http_error_build_tail) - 1;
+        tail = ngx_http_error_build_tail;
 
     } else {
         len = sizeof(ngx_http_error_tail) - 1;
@@ -782,7 +836,7 @@ ngx_http_send_refresh(ngx_http_request_t *r)
     b->last = ngx_cpymem(p, ngx_http_msie_refresh_tail,
                          sizeof(ngx_http_msie_refresh_tail) - 1);
 
-    b->last_buf = 1;
+    b->last_buf = (r == r->main) ? 1 : 0;
     b->last_in_chain = 1;
 
     out.buf = b;

@@ -55,6 +55,8 @@
 #include <crypt.h>
 #include <sys/utsname.h>        /* uname() */
 
+#include <dlfcn.h>
+
 
 #include <ngx_auto_config.h>
 
@@ -94,6 +96,11 @@ extern ssize_t sendfile(int s, int fd, int32_t *offset, size_t size);
 #if (NGX_HAVE_FILE_AIO)
 #include <linux/aio_abi.h>
 typedef struct iocb  ngx_aiocb_t;
+#endif
+
+
+#if (NGX_HAVE_CAPABILITIES)
+#include <linux/capability.h>
 #endif
 
 

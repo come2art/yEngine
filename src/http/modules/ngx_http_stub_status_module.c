@@ -76,7 +76,7 @@ static ngx_http_variable_t  ngx_http_stub_status_vars[] = {
     { ngx_string("connections_waiting"), NULL, ngx_http_stub_status_variable,
       3, NGX_HTTP_VAR_NOCACHEABLE, 0 },
 
-    { ngx_null_string, NULL, NULL, 0, 0, 0 }
+      ngx_http_null_variable
 };
 
 
@@ -89,7 +89,7 @@ ngx_http_stub_status_handler(ngx_http_request_t *r)
     ngx_chain_t        out;
     ngx_atomic_int_t   ap, hn, ac, rq, rd, wr, wa;
 
-    if (r->method != NGX_HTTP_GET && r->method != NGX_HTTP_HEAD) {
+    if (!(r->method & (NGX_HTTP_GET|NGX_HTTP_HEAD))) {
         return NGX_HTTP_NOT_ALLOWED;
     }
 
